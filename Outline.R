@@ -55,7 +55,7 @@ myCRS = crs(Incidence2013_raster)
 library(dplyr)
 library(data.table)
 library(tibble)
-INDICATORS_SET2_HEADERS <- read.csv("C:/Users/maxpa/polybox/Masterthesis Mobile Data/Projekte/Masterthesis Mobile Data/test2/test/Data/Challenge Data/SET2/INDICATORS_SET2_HEADERS.CSV", quote="'")
+INDICATORS_SET2_HEADERS <- read.csv("Data/Challenge Data/SET2/INDICATORS_SET2_HEADERS.CSV", quote="'")
 SET2_P01small <- read.csv("Data/Challenge Data/SET2/SET2_P01small.CSV", header=FALSE)
 #SET2_P01 <- read.csv("Data/Challenge Data/SET2/SET2_P01.CSV", header=FALSE)
 data = SET2_P01small
