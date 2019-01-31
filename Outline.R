@@ -50,7 +50,7 @@ plot(Incidence2013_raster)
 myCRS = crs(Incidence2013_raster)
 
 
-# load mobile data Set 2
+# load mobile data Set 2 TOWER LEVEL!!!!!!!!!!!!!!!!!
 # for FIRST PART OF first two week space -> extend for other two week periods! (PLACES MARKED)
 library(dplyr)
 library(data.table)
@@ -61,7 +61,7 @@ SET2_P01small <- read.csv("Data/Challenge Data/SET2/SET2_P01small.CSV", header=F
 data = SET2_P01small
 #data = SET2_P01
 
-##### calculate home #####
+##### calculate home on tower level #####
 
 # create sleepplace tibble: each collumn holds one two week period, rows hold IDs
 sleepplace = as.tibble(matrix(nrow=NROW(unique(data$V1)), ncol = 25))
@@ -111,6 +111,8 @@ colouredmapfunct(Voronoi_SPDF, example)
 
 # averaging raster values within towerarea <<<<--------------------- How to do it for all tower polygons?
 # use https://www.neonscience.org/dc-crop-extract-raster-data-r
+require(maptools)
+require(ggplot2)
 
 
 tower_raster <- extract(x = Incidence2013_raster, 
@@ -118,4 +120,6 @@ tower_raster <- extract(x = Incidence2013_raster,
                        df=TRUE)
 
 head(tower_raster)
+
+
 
