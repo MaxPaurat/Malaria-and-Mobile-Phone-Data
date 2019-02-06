@@ -46,10 +46,12 @@ library(raster)
 # load incidence data:
 GDALinfo("Data\\Malaria\\country_profiles_data\\2015_Nature_Africa_Incidence_SEN_2013.tiff")
 Incidence2013_raster = raster(("Data\\Malaria\\country_profiles_data\\2015_Nature_Africa_Incidence_SEN_2013.tiff"))
-plot(Incidence2013_raster)
+plot(Incidence2013_raster, axes=TRUE)
+plot(SEN_arr,axes=TRUE, add = T)
+plot(SEN_arr, add = T)
 myCRS = crs(Incidence2013_raster)
 
-
+myCRS
 # load mobile data Set 2 TOWER LEVEL!!!!!!!!!!!!!!!!!
 # for FIRST PART OF first two week space -> extend for other two week periods! (PLACES MARKED)
 library(dplyr)
@@ -114,12 +116,20 @@ colouredmapfunct(Voronoi_SPDF, example)
 require(maptools)
 require(ggplot2)
 
+# SEN_arr_Shapepoly = readShapePoly()
 
-tower_raster <- extract(x = Incidence2013_raster, 
-                       y = Voronoi_SPDF[500,], 
-                       df=TRUE)
+getValues(Incidence2013_raster)
+coordinates(Incidence2013_raster)
+length(unique(getValues(Incidence2013_raster)))
 
-head(tower_raster)
+Incidence2015_raster = raster(("Data\\Malaria\\country_profiles_data\\2015_Nature_Africa_Incidence_SEN_2015.tiff"))
+getValues(Incidence2015_raster)
+length(unique(getValues(Incidence2015_raster)))
 
+
+average_raster_arr <- extract(Incidence2013_raster, SEN_arr, weights=FALSE, fun=mean)
+
+
+#
 
 
