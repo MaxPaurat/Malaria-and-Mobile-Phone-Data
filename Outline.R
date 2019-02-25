@@ -126,10 +126,71 @@ Incidence2015_raster = raster(("Data\\Malaria\\country_profiles_data\\2015_Natur
 getValues(Incidence2015_raster)
 length(unique(getValues(Incidence2015_raster)))
 
+# what do I want
+# extract the average values of incidence in the admin areas and 
+# 
+library(dplyr)
+# av_tbl = tbl_df(cbind(getValues(admin), getValues(incidence_new)))
+# a= coordinates(admin)
+# b= coordinates(incidence_new)
+# identical(a,b)
 
-average_raster_arr <- extract(Incidence2013_raster, SEN_arr, weights=FALSE, fun=mean)
+du = admin
+values(du)[20]=100000000
+plot(du)
+dummy = incidence_new
+values(dummy)[520]=100000000
+plot(dummy)
 
 
-#
+ja__ = av_tbl %>%
+  filter(!is.na(ad)) %>%
+  group_by(ad) %>%
+  summarize(mean_value = mean(inc, na.rm = TRUE)) #<-------- this works
+ja__
+
+# write averaging function
+
+  
+# un = unique(admin)
+# for(i in 1:123){
+#   av_tbl$average[i] = mean(filter(av_tbl, av_tbl["ad"]== un[i])["inc"])
+# }
+
+
+# take vector of factors of admin
+# 
+
+# assigning all raster values with same admin value the average value
+
+
+# what do I want
+# a plot with the average malaria values for each arr
+
+# working with ggplot, raster
+
+# 1. add a col to ad that is the value for each pixel
+# 1.1 
+# put raster in a stack, group by admin variable, average, create new raster of this
+
+# ?stackApply()
+# ?clump
+# library(igraph)
+# unique(admin)
+# st = stack(admin, incidence_new)
+
+
+# 
+# reclass_matrix = as.matrix(cbind(unique(admin), average_raster_arr))
+# colnames(reclass_matrix) = NULL
+
+reclass_matrix = as.matrix(cbind(ja__$ad, ja__$mean_value))
+colnames(reclass_matrix) = NULL
+reclass_matrix
+
+# reclassify the raster using the reclass object - reclass_matrix
+admin_with_average_malaria_values <- reclassify(admin,reclass_matrix)
+
+admin_with_average_malaria_values
 
 
