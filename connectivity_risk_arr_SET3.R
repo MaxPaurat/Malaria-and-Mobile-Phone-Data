@@ -4,7 +4,7 @@
 # aggregate per arr
 # 
 
-# con_risk_df = data.frame(tower_id, returning_residents_risk, visitors_risk)
+con_risk_df = data.frame(tower_id = 1:123, returning_residents_risk=NA, visitors_risk=NA)
 # ?data.frame
 # 
 # tower_id = 1:1666
@@ -15,26 +15,32 @@ library(dplyr)
 # library(data.table)
 library(tibble)
 
-# SET3_M01small <- read.csv("Data/Challenge Data/SET3/SET3_M01small.CSV", header=FALSE)
-SET3_M01 <- read.csv("Data/Challenge Data/SET3/SET3_M01.CSV", header=FALSE)
-# data = SET3_M01small
-data = SET3_M01
-
+SET3_M01small <- read.csv("/cluster/scratch/pauratm/Data/Challenge Data/SET3/SET3_M01small.CSV", header=FALSE)
+# SET3_M01 <- read.csv("Data/Challenge Data/SET3/SET3_M01.CSV", header=FALSE)
+data = SET3_M01small
+# data = SET3_M01
+g
 # create sleepplace tibble
 # 
 # sleepplace_arr_SET3 = as.tibble(matrix(nrow=NROW(unique(data$V1)), ncol = 365 ))
 # sleepplace_arr_SET3 = add_column(sleepplace_arr_SET3, user_id = unique(data$V1), .before = "V1")
 
 # loop to load all data
-i = "01"
-# months = formatC(1:12,width=2,format="d",flag="0")
-# 
-# for(i in months) {
-#   infile <- paste("Data/Challenge Data/SET3/SET3_M",i,".CSV", sep = "")
-#   print(infile)
-#   data <- read.csv(infile, header=FALSE)
+# i = "01"
+n_months = 5
+months = formatC(1:n_months,width=2,format="d",flag="0")
+file_month_names = vector("list", n_months)
+for(k in 1:n_months) {
+  infile <- paste("/cluster/scratch/pauratm/Data/Challenge\ Data/SET3/SET3_M",months[k],".CSV", sep = "")
+  file_month_names[[k]] = infile
   
+  # print(infile)
+  # 
+}
+
 ##### calculate home on arr level from SET 3#####
+calculate_sleepplace = function(file_month_name){
+  data <- read.csv(file_month_name, header=FALSE)
 
 # creating datetime and date collumns in data
 x= as.character(data$V2)
@@ -54,19 +60,46 @@ data_df_grouped = group_by(data_df, user_id, int_date)
 sleep = summarize(data_df_grouped, site_of_last_call = last(site_id))
 ungroup(sleep)
 
-  if(i == "01"){
-    sleepplace_arr_SET3 = sleep
-  } else {
-      sleepplace_arr_SET3 = rbind(sleepplace_arr_SET3,sleep)
-  }
-# 
-# }
+  # if(i == "01"){
+  #   sleepplace_arr_SET3 = sleep
+  # } else {
+  #     sleepplace_arr_SET3 = rbind(sleepplace_arr_SET3,sleep)
+  # }
+
+}
+
+# call the function with lapply to allow parallelization
+ptm_apply = proc.time()
+results <- lapply(file_month_names, calculate_sleepplace)
+proc.time() - ptm_apply
+
+# combine elements of the results list to one dataframe
+sleepplace_arr_SET3 = do.call("rbind", results)
 
 # order by person and day to find home
 sleepplace_arr_SET3[
   with(sleepplace_arr_SET3, order(user_id, int_date)),
   ]
 
+
+
+homes = sleepplace_arr_SET3 %>% group_by(user_id) %>% summarize (home =names(which.max(table(site_of_last_call)))) 
+sleepplace_arr_SET3 <- merge(sleepplace_arr_SET3,homes,by="user_id")
+sleepplace_arr_SET3 = merge(sleepplace_arr_SET3, )
+
+#con_risk_df[i] = add()
+
+# Speichern
 save(sleepplace_arr_SET3,file="sleepplace_arr_SET3.Rda")
 
 # load("sleepplace_arr_SET3.Rda")
+
+### visitors ###
+
+
+
+
+
+
+
+

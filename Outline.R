@@ -130,7 +130,7 @@ length(unique(getValues(Incidence2015_raster)))
 # extract the average values of incidence in the admin areas and 
 # 
 library(dplyr)
-# av_tbl = tbl_df(cbind(getValues(admin), getValues(incidence_new)))
+av_tbl = tbl_df(cbind(ad = getValues(admin), inc = getValues(incidence_new)))
 # a= coordinates(admin)
 # b= coordinates(incidence_new)
 # identical(a,b)

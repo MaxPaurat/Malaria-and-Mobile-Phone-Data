@@ -83,9 +83,9 @@ ggplot() +
 
 
 #Map of Malaria of arr level ---> pretty good except for dakar (because of shift problem)
-admin_with_average_malaria_values_df  = as.data.frame(admin_with_average_malaria_values, xy=TRUE)
+arr_with_average_malaria_values_df  = as.data.frame(admin_with_average_malaria_values, xy=TRUE)
 ggplot() +
-  geom_raster(data = admin_with_average_malaria_values_df , aes(x=x,y=y, fill=layer)) + 
+  geom_raster(data = arr_with_average_malaria_values_df , aes(x=x,y=y, fill=layer)) + 
   coord_quickmap()
 
 
