@@ -4,7 +4,7 @@
 # aggregate per arr
 # 
 
-con_risk_df = data.frame(tower_id = 1:123, returning_residents_risk=NA, visitors_risk=NA)
+con_risk_df = data.frame(arr_id = 1:123, returning_residents_risk=NA, visitors_risk=NA)
 # ?data.frame
 # 
 # tower_id = 1:1666
@@ -15,7 +15,9 @@ library(dplyr)
 # library(data.table)
 library(tibble)
 
-SET3_M01small <- read.csv("/cluster/scratch/pauratm/Data/Challenge Data/SET3/SET3_M01small.CSV", header=FALSE)
+# SET3_M01small <- read.csv("/cluster/scratch/pauratm/Data/Challenge Data/SET3/SET3_M01small.CSV", header=FALSE)
+SET3_M01small <- read.csv("Data/Challenge Data/SET3/SET3_M01small.CSV", header=FALSE)
+
 # SET3_M01 <- read.csv("Data/Challenge Data/SET3/SET3_M01.CSV", header=FALSE)
 data = SET3_M01small
 # data = SET3_M01
@@ -31,7 +33,9 @@ n_months = 5
 months = formatC(1:n_months,width=2,format="d",flag="0")
 file_month_names = vector("list", n_months)
 for(k in 1:n_months) {
-  infile <- paste("/cluster/scratch/pauratm/Data/Challenge\ Data/SET3/SET3_M",months[k],".CSV", sep = "")
+  # infile <- paste("/cluster/scratch/pauratm/Data/Challenge\ Data/SET3/SET3_M",months[k],".CSV", sep = "")
+  infile <- paste("Data/Challenge Data/SET3/SET3_M",months[k],".CSV", sep = "")
+  
   file_month_names[[k]] = infile
   
   # print(infile)
@@ -39,6 +43,7 @@ for(k in 1:n_months) {
 }
 
 ##### calculate home on arr level from SET 3#####
+
 calculate_sleepplace = function(file_month_name){
   data <- read.csv(file_month_name, header=FALSE)
 
@@ -76,6 +81,8 @@ proc.time() - ptm_apply
 # combine elements of the results list to one dataframe
 sleepplace_arr_SET3 = do.call("rbind", results)
 
+load("sleepplace_arr_SET3.Rda")
+
 # order by person and day to find home
 sleepplace_arr_SET3[
   with(sleepplace_arr_SET3, order(user_id, int_date)),
@@ -85,14 +92,84 @@ sleepplace_arr_SET3[
 
 homes = sleepplace_arr_SET3 %>% group_by(user_id) %>% summarize (home =names(which.max(table(site_of_last_call)))) 
 sleepplace_arr_SET3 <- merge(sleepplace_arr_SET3,homes,by="user_id")
-sleepplace_arr_SET3 = merge(sleepplace_arr_SET3, )
+arr_av_malaria_df = as.data.frame(reclass_matrix)
+colnames(arr_av_malaria_df) = c("arr_id_MAP","av_malaria_inc")
+arr_av_malaria_df = add_column(arr_av_malaria_df, arr_id_MAP_123 = 1:123,home = 1:123)
 
-#con_risk_df[i] = add()
+
+sleepplace_arr_SET3 = merge(sleepplace_arr_SET3, arr_av_malaria_df, by="home")
+
+
+# computing risk from visitors (separate trips are counted each with the value of home risk and added)
+sleepplace_arr_SET3 = sleepplace_arr_SET3[
+  with(sleepplace_arr_SET3, order(user_id, int_date)),
+  ]
+
+
+# when person isn't home
+sleepplace_arr_SET3= mutate(sleepplace_arr_SET3,not_home = sleepplace_arr_SET3$home != sleepplace_arr_SET3$site_of_last_call)
+
+
+# per user, which arrs visited, how often
+# per arr, how many visits, from which regions
+
+
+#visitor_df = vector("list", length(unique(sleepplace_arr_SET3$user_id)))
+
+#visits
+#user_ID = 30
+build_visitor_df = function(user_ID){
+  test3=sleepplace_arr_SET3[sleepplace_arr_SET3["user_id"] == user_ID,]
+  test4 = rle(test3$site_of_last_call)
+  test4.1 = data.frame(lengths = test4$lengths, values =test4$values)
+  test5 = test4.1[!(test4.1$values == unique(test3$home)),]
+  test5.1 = as.data.frame(table(test5$values))
+  test5.2 = add_column(test5.1, user_ID = user_ID)
+}
+
+visitor_dfs = lapply(unique(sleepplace_arr_SET3$user_id)[1:1000], build_visitor_df)
+
+unique(sleepplace_arr_SET3$user_id)
+# what I want is
+# create entries in con_mat
+# 
+
+
+visitor_df = do.call("rbind", visitor_dfs)
+colnames(visitor_df) = c("arr_visited", "how_often", "user_id")
+
+sleepplace_arr_SET3_2 = unique(sleepplace_arr_SET3[,c("user_id","av_malaria_inc")])
+visitor_df2 = merge(visitor_df, sleepplace_arr_SET3_2, by="user_id")
+
+
+visitor_df2["multiplied"] = visitor_df2$how_often*visitor_df2$av_malaria_inc
+
+hm = visitor_df2 %>%
+  group_by(arr_visited) %>%
+  summarize(sum(multiplied, na.rm = TRUE))
+
+# returning residents df
+# number of days * risk of visited arr
+# based on sleepplace_arr_SET3
+
+#user_ID = 30
+build_returning_residents_df = function(user_ID){
+  test3=sleepplace_arr_SET3[sleepplace_arr_SET3["user_id"] == user_ID,]
+  test4 = rle(test3$site_of_last_call)
+  test4.1 = data.frame(lengths = test4$lengths, values =test4$values)
+  test5 = test4.1[!(test4.1$values == unique(test3$home)),] 
+  test5.1.1 = test5 %>%
+    group_by(values) %>%
+    summarise(nights_not_home = sum(lengths))
+  #test5.1 = as.data.frame(test5.1.1))
+  test5.2 = add_column(test5.1.1, user_ID = user_ID)
+}
+
 
 # Speichern
-save(sleepplace_arr_SET3,file="sleepplace_arr_SET3.Rda")
+# save(sleepplace_arr_SET3,file="sleepplace_arr_SET3.Rda")
 
-# load("sleepplace_arr_SET3.Rda")
+
 
 ### visitors ###
 
