@@ -2,10 +2,9 @@
 # malaria risk connectivity matrices  
 # 
 # Check to do to step:
-# - towers aggregated to larger areas in urban areas defined by GRUMP-UE dataset
+# - towers aggregated to larger areas in urban areas defined by GRUMP-UE dataset <- not neccessary for arr level
 #   - download GRUMP-UE Senegal
 #   - "falling within the boundaries of urban extents"
-# - get the data for population prevalence from MAP site
 
 # - calculate 'home' for people
 # - construct weighted network of movements between tower areas
@@ -21,14 +20,6 @@
 # - read paper 25 to understand function of infection risk by days (in malaria season) and prevalence
 # - 
 
-# What does Feuerriegel want?
-# Preprocessing 
-# loading files
-# - prevalence
-# - mobile
-# download packages
-# - raster
-# - Rgdl
 
 # load polygon shapefile of tower areas
 # assign the same coordinate system to mobile towers and incidence raster

@@ -21,7 +21,7 @@ SET3_M01small <- read.csv("Data/Challenge Data/SET3/SET3_M01small.CSV", header=F
 # SET3_M01 <- read.csv("Data/Challenge Data/SET3/SET3_M01.CSV", header=FALSE)
 data = SET3_M01small
 # data = SET3_M01
-g
+
 # create sleepplace tibble
 # 
 # sleepplace_arr_SET3 = as.tibble(matrix(nrow=NROW(unique(data$V1)), ncol = 365 ))
@@ -29,7 +29,7 @@ g
 
 # loop to load all data
 # i = "01"
-n_months = 5
+n_months = 2
 months = formatC(1:n_months,width=2,format="d",flag="0")
 file_month_names = vector("list", n_months)
 for(k in 1:n_months) {
@@ -74,14 +74,17 @@ ungroup(sleep)
 }
 
 # call the function with lapply to allow parallelization
-ptm_apply = proc.time()
+# ptm_apply = proc.time()
 results <- lapply(file_month_names, calculate_sleepplace)
-proc.time() - ptm_apply
+# proc.time() - ptm_apply
 
 # combine elements of the results list to one dataframe
 sleepplace_arr_SET3 = do.call("rbind", results)
 
-load("sleepplace_arr_SET3.Rda")
+save(sleepplace_arr_SET3, file="sleepplace_arr_SET3_months1-2.Rda")
+
+load("sleepplace_arr_SET3_months1-5.Rda")
+
 
 # order by person and day to find home
 sleepplace_arr_SET3[
@@ -95,11 +98,9 @@ sleepplace_arr_SET3 <- merge(sleepplace_arr_SET3,homes,by="user_id")
 arr_av_malaria_df = as.data.frame(reclass_matrix)
 colnames(arr_av_malaria_df) = c("arr_id_MAP","av_malaria_inc")
 arr_av_malaria_df = add_column(arr_av_malaria_df, arr_id_MAP_123 = 1:123,home = 1:123)
-
-
 sleepplace_arr_SET3 = merge(sleepplace_arr_SET3, arr_av_malaria_df, by="home")
 
-
+save(sleepplace_arr_SET3, file="sleepplace_arr_SET3_1.Rda")
 # computing risk from visitors (separate trips are counted each with the value of home risk and added)
 sleepplace_arr_SET3 = sleepplace_arr_SET3[
   with(sleepplace_arr_SET3, order(user_id, int_date)),
@@ -127,7 +128,7 @@ build_visitor_df = function(user_ID){
   test5.2 = add_column(test5.1, user_ID = user_ID)
 }
 
-visitor_dfs = lapply(unique(sleepplace_arr_SET3$user_id)[1:1000], build_visitor_df)
+visitor_dfs = lapply(unique(sleepplace_arr_SET3$user_id), build_visitor_df)
 
 unique(sleepplace_arr_SET3$user_id)
 # what I want is
@@ -144,10 +145,12 @@ visitor_df2 = merge(visitor_df, sleepplace_arr_SET3_2, by="user_id")
 
 visitor_df2["multiplied"] = visitor_df2$how_often*visitor_df2$av_malaria_inc
 
-hm = visitor_df2 %>%
+arr_visitor_risk = visitor_df2 %>%
   group_by(arr_visited) %>%
   summarize(sum(multiplied, na.rm = TRUE))
 
+
+save(arr_visitor_risk, file="arr_visitor_risk.Rda")
 # returning residents df
 # number of days * risk of visited arr
 # based on sleepplace_arr_SET3
@@ -164,6 +167,40 @@ build_returning_residents_df = function(user_ID){
   #test5.1 = as.data.frame(test5.1.1))
   test5.2 = add_column(test5.1.1, user_ID = user_ID)
 }
+
+returning_residents_dfs = lapply(unique(sleepplace_arr_SET3$user_id)[1:100], build_returning_residents_df)
+
+
+####### adapt tjhis!!! ######
+returning_df = do.call("rbind", returning_residents_dfs)
+colnames(returning_df) = c("arr_visited", "how_long_total", "user_id")
+
+sleepplace_arr_SET3_3 = unique(sleepplace_arr_SET3[,c("home","av_malaria_inc")])
+colnames(sleepplace_arr_SET3_3) = c("arr_visited","av_malaria_inc")
+returning_df2 = merge(returning_df, sleepplace_arr_SET3_3, by="arr_visited")
+
+
+visitor_df2["multiplied"] = visitor_df2$how_often*visitor_df2$av_malaria_inc
+
+save(visitor_df2, file="visitor_df.Rda")
+
+hm = visitor_df2 %>%
+  group_by(arr_visited) %>%
+  summarize(sum(multiplied, na.rm = TRUE))
+
+save(hm, file="hm.Rda")
+######################
+
+
+
+
+
+
+
+
+
+
+
 
 
 # Speichern
