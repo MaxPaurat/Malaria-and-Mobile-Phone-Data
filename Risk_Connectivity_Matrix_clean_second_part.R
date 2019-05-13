@@ -117,7 +117,5 @@ returning_residents_dfs = lapply(unique(sleepplace_arr_SET3$user_id)[1:100], bui
 
 save(returning_residents_dfs, returning_residents_dfs)
 
-
-
-
+load("sleepplace")
 

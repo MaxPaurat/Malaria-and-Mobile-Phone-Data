@@ -1,15 +1,16 @@
 # sleeping_time_on_full_data
+library(dplyr)
+library(tibble)
 
-
-n_months = 12
+n_months = 3
 months = formatC(1:n_months,width=2,format="d",flag="0")
 file_month_names = vector("list", n_months)
 for(k in 1:n_months) {
-  infile <- paste("cluster/scratch/pauratm/Data/Challenge\ Data/SET3/SET3_M",months[k],".CSV", sep = "")
+  infile <- paste("/cluster/scratch/pauratm/Data/Challenge\ Data/SET3/SET3_M",months[k],".CSV", sep = "")
   # infile <- paste("Data/Challenge Data/SET3/SET3_M",months[k],".CSV", sep = "")
-  
+
   file_month_names[[k]] = infile
-  
+
 }
 
 save(file_month_names, file="file_month_names.Rda")
@@ -17,24 +18,24 @@ save(file_month_names, file="file_month_names.Rda")
 
 data_complete = list()
 
-n = 12
-for(k in 1:n){
-  
+for(k in 1:n_months){
+
   temp = read.csv(file_month_names[[k]], header = FALSE)
-  
+
   data_complete[[k]] = temp
-  
+
   cat(k)
 }
 
 save(data_complete, file="data_complete.Rda")
+# load("data_complete.Rda")
 
-for(i in 1:12){
+for(i in 1:n_months){
   
   colnames(data_complete[[i]]) = c("V1","V2","V3")
   
 }
-for(i in 1:12){
+for(i in 1:n_months){
   
   print(colnames(data_complete[[i]]))
   
@@ -67,10 +68,9 @@ sleep = summarize(data_df_grouped, site_of_last_call = last(site_id))
 ungroup(sleep)
 
 sleepplace_aggr_dakar_full = sleep
-save(sleepplace_aggr_dakar_full, file="sleepplace_aggr_dakar_full.Rda")
-load("reclass_matrix.Rda")
+# save(sleepplace_aggr_dakar_full, file="sleepplace_aggr_dakar_full.Rda")
 
 # order by person and day to find home
 
 homes = sleepplace_aggr_dakar_full %>% group_by(user_id) %>% summarize (home = names(which.max(table(site_of_last_call)))) 
-save(sleepplace_aggr_dakar_full, file="sleepplace_aggr_dakar_full.Rda")
+save(sleepplace_aggr_dakar_full, file="sleepplace_aggr_dakar_months_1-6.Rda")
