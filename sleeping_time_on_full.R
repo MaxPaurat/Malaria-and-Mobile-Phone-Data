@@ -1,8 +1,11 @@
 # sleeping_time_on_full_data
 library(dplyr)
 library(tibble)
+library(devtools)
+library(multidplyr)
 
-n_months = 3
+
+n_months = 12
 months = formatC(1:n_months,width=2,format="d",flag="0")
 file_month_names = vector("list", n_months)
 for(k in 1:n_months) {
@@ -12,6 +15,7 @@ for(k in 1:n_months) {
   file_month_names[[k]] = infile
 
 }
+object.size(file_month_names)
 
 save(file_month_names, file="file_month_names.Rda")
 ###
@@ -26,6 +30,7 @@ for(k in 1:n_months){
 
   cat(k)
 }
+object.size(data_complete)
 
 save(data_complete, file="data_complete.Rda")
 # load("data_complete.Rda")
@@ -42,9 +47,9 @@ for(i in 1:n_months){
 }
 
 
-data_complete_joined = do.call(rbind, data_complete)
+data = do.call(rbind, data_complete)
+object.size(data)
 
-data = data_complete_joined
 
 # creating datetime and date collumns in data
 x= as.character(data$V2)
@@ -57,20 +62,29 @@ data$int_date = match(as.character(data$date), date.lookup)
 
 # group data to work on separate users and separate days
 data_df = tbl_df(data)
+rm(data)
 colnames(data_df) = c("user_id", "timestamp", "site_id", "date", "int_date")
 
 # aggregating Dakar arrs to be new id 11, this way it can be seen easily that Dakar is aggregated
 data_df$site_id[data_df$site_id %in% 1:11] <- 11
-data_df_grouped = group_by(data_df, user_id, int_date)
+
+sleepplace_aggr_dakar_full = data_df %>% 
+  partition(user_id, int_date) %>% 
+  summarize(data_df_grouped, site_of_last_call = last(site_id)) %>%
+  collect()
 
 # extract last call from every user on every day
-sleep = summarize(data_df_grouped, site_of_last_call = last(site_id))
-ungroup(sleep)
+object.size(sleepplace_aggr_dakar_full)
 
-sleepplace_aggr_dakar_full = sleep
 # save(sleepplace_aggr_dakar_full, file="sleepplace_aggr_dakar_full.Rda")
 
 # order by person and day to find home
 
-homes = sleepplace_aggr_dakar_full %>% group_by(user_id) %>% summarize (home = names(which.max(table(site_of_last_call)))) 
-save(sleepplace_aggr_dakar_full, file="sleepplace_aggr_dakar_months_1-6.Rda")
+homes = sleepplace_aggr_dakar_full %>% 
+  partition(user_id) %>% 
+  summarize (home = names(which.max(table(site_of_last_call)))) %>%
+  collect()
+
+save(sleepplace_aggr_dakar_full, file="sleepplace_aggr_dakar_months_1-12.Rda")
+save(homes, file ="homes_month_1-12.Rda")
+object.size(homes)

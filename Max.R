@@ -106,7 +106,7 @@ PRadm3 <- extract(SEN_PfPR2_10, SEN3_shp, fun=mean, na.rm=TRUE, sp = T)#sp (T: o
 head(PRadm3@data)
 #extract stack of covariates into polygons
 PRadm3 <- extract(st, PRadm3 , fun=mean, na.rm=TRUE, sp = T)#sp (T: output is a spdf, F: output is vector)
-head(PRadm2@data)
+head(PRadm3@data)
 PRadm3@data = PRadm3@data[-3,]
 
 #plot mean of PR for each polygon
@@ -123,8 +123,9 @@ qtm(shp = PRadm3, fill = "elevation", fill.palette = "-Blues") # not shown
 # geom_polygon(data = PRadm2df, aes(long, lat, group = group, fill =Plasmodium.falciparum.PR2.10.2013))# +
 # print(my_plot)
 
+library(rgeos)
 #point data (this is just for test, in reality use your response data)
-randompt<-gCentroid(PRadm2,byid=TRUE)
+randompt<-gCentroid(PRadm3,byid=TRUE)
 #extract covariate values at point locations
 covatresponse<-extract(st,randompt,sp=T)
 covatresponsedf<-data.frame(covatresponse)
@@ -135,7 +136,7 @@ qtm(shp = covatresponse, fill = "elevation") # maybe not the best option to plot
 # glm part
 
 library(glmm)
-install.packages("C:/Users/maxpa/Downloads/INLA_19.03.04.tar.gz", repos = NULL, type = "source")
+#install.packages("C:/Users/maxpa/Downloads/INLA_19.03.04.tar.gz", repos = NULL, type = "source")
 
 fmla <- as.formula(paste("pop_data$number ~ ", paste(names(st), collapse= "+")))
 
@@ -154,6 +155,10 @@ rate_pred = exp(b0 + b%*%t(x))
 plot(pop_data$number, cases_pred)
 plot(pop_data$rate, rate_pred)
 abline(a=0, b=1)
+
+
+
+
 
 
 # cross-validation
